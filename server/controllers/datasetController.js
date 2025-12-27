@@ -9,7 +9,7 @@ const storage = multer.diskStorage({
     cb(null, 'uploads/');
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
+    cb(null, Date.now() + path.extname(file.originalname)); //Appending extension
   }
 });
 
@@ -19,7 +19,7 @@ const router = express.Router();
 
 router.post('/upload', upload.single('file'), (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ message: 'No file uploaded' });
+    return res.status(400).send('No file uploaded.');
   }
 
   const results = [];
@@ -27,12 +27,8 @@ router.post('/upload', upload.single('file'), (req, res) => {
     .pipe(csv())
     .on('data', (data) => results.push(data))
     .on('end', () => {
-      fs.unlinkSync(req.file.path); // Remove the file after reading
-      res.status(200).json(results);
-    })
-    .on('error', (err) => {
-      fs.unlinkSync(req.file.path); // Remove the file in case of error
-      res.status(500).json({ message: 'Error reading file', error: err.message });
+      fs.unlinkSync(req.file.path); // remove the file from the server after processing
+      res.json(results);
     });
 });
 
