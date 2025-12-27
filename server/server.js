@@ -2,7 +2,6 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const csv = require('csv-parser');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -10,31 +9,34 @@ const PORT = process.env.PORT || 5000;
 // Set up storage for uploaded files
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    const dir = './uploads/';
+    if (!fs.existsSync(dir)){
+      fs.mkdirSync(dir);
+    }
+    cb(null, dir);
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
+    cb(null, Date.now() + path.extname(file.originalname)); // Append timestamp to avoid filename conflicts
   }
 });
 
 const upload = multer({ storage: storage });
 
-// Create uploads directory if it doesn't exist
-if (!fs.existsSync('uploads')) {
-  fs.mkdirSync('uploads');
-}
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, 'client/build')));
 
-app.use(express.static(path.join(__dirname, 'public')));
-
+// Endpoint to handle file uploads
 app.post('/upload', upload.single('file'), (req, res) => {
-  const results = [];
-  fs.createReadStream(req.file.path)
-    .pipe(csv())
-    .on('data', (data) => results.push(data))
-    .on('end', () => {
-      fs.unlinkSync(req.file.path); // Remove the file after processing
-      res.json(results);
-    });
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
+  res.send('File uploaded successfully.');
+});
+
+// The "catchall" handler: for any request that doesn't
+// match one above, send back React's index.html file.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname + '/client/build/index.html'));
 });
 
 app.listen(PORT, () => {
