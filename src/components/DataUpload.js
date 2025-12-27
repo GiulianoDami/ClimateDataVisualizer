@@ -27,7 +27,7 @@ const DataUpload = () => {
       });
       setMessage(response.data.message);
     } catch (error) {
-      setMessage('Error uploading file.');
+      setMessage('Error uploading file. Please try again.');
     }
   };
 
