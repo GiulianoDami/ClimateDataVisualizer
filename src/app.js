@@ -1,9 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
-import UploadPage from './components/UploadPage'
-import VisualizationPage from './components/VisualizationPage'
-import HomePage from './components/HomePage'
+import Upload from './components/Upload'
+import Visualize from './components/Visualize'
+import Home from './components/Home'
 import './App.css'
 
 function App() {
@@ -11,9 +11,9 @@ function App() {
     <Router>
       <div className="App">
         <Switch>
-          <Route path="/" exact component={HomePage} />
-          <Route path="/upload" component={UploadPage} />
-          <Route path="/visualize" component={VisualizationPage} />
+          <Route path="/" exact component={Home} />
+          <Route path="/upload" component={Upload} />
+          <Route path="/visualize" component={Visualize} />
         </Switch>
       </div>
     </Router>
