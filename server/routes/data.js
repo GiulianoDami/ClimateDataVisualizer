@@ -8,11 +8,11 @@ const router = express.Router();
 
 // Set up storage for uploaded files
 const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
+  destination: function (req, file, cb) {
     cb(null, 'uploads/');
   },
-  filename: function(req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname)); // Append timestamp to avoid filename conflicts
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Append timestamp to avoid overwriting
   }
 });
 
@@ -39,7 +39,7 @@ router.post('/upload', upload.single('file'), (req, res) => {
     })
     .on('error', (err) => {
       fs.unlinkSync(req.file.path); // Remove the file in case of error
-      res.status(500).send('Error processing file.');
+      res.status(500).send('Error processing file: ' + err.message);
     });
 });
 
