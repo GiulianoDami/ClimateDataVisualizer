@@ -20,9 +20,9 @@ const Visualization = ({ data }) => {
   }, [data, chartType]);
 
   const createLineChart = (data) => {
+    const width = 600;
+    const height = 400;
     const margin = { top: 20, right: 30, bottom: 40, left: 50 };
-    const width = 800 - margin.left - margin.right;
-    const height = 400 - margin.top - margin.bottom;
 
     const svg = d3.select('#line-chart')
       .attr('width', width + margin.left + margin.right)
@@ -30,8 +30,8 @@ const Visualization = ({ data }) => {
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
-    const x = d3.scaleTime()
-      .domain(d3.extent(data, d => new Date(d.date)))
+    const x = d3.scaleLinear()
+      .domain(d3.extent(data, d => d.year))
       .range([0, width]);
 
     svg.append('g')
@@ -39,15 +39,15 @@ const Visualization = ({ data }) => {
       .call(d3.axisBottom(x));
 
     const y = d3.scaleLinear()
-      .domain([0, d3.max(data, d => d.value)])
+      .domain([0, d3.max(data, d => d.temperature)])
       .range([height, 0]);
 
     svg.append('g')
       .call(d3.axisLeft(y));
 
     const line = d3.line()
-      .x(d => x(new Date(d.date)))
-      .y(d => y(d.value));
+      .x(d => x(d.year))
+      .y(d => y(d.temperature));
 
     svg.append('path')
       .datum(data)
@@ -59,27 +59,28 @@ const Visualization = ({ data }) => {
 
   const createHeatmap = (data) => {
     if (!map) {
-      const leafletMap = L.map('heatmap').setView([51.505, -0.09], 13);
+      const newMap = L.map('heatmap').setView([34.0522, -118.2437], 4);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(leafletMap);
-      setMap(leafletMap);
+      }).addTo(newMap);
+      setMap(newMap);
     } else {
-      map.eachLayer((layer) => {
+      map.eachLayer(layer => {
         if (layer instanceof L.HeatMap) {
           map.removeLayer(layer);
         }
       });
     }
 
-    const heatmapLayer = L.heatMap(
-      data.map(d => [parseFloat(d.lat), parseFloat(d.lon), parseFloat(d.value)])
+    const heatmapLayer = new L.HeatMap(
+      data.map(d => [d.latitude, d.longitude, d.temperature]),
+      { radius: 25, blur: 15, maxZoom: 18 }
     ).addTo(map);
   };
 
   return (
     <div>
-      <select value={chartType} onChange={(e) => setChartType(e.target.value)}>
+      <select value={chartType} onChange={e => setChartType(e.target.value)}>
         <option value="line">Line Chart</option>
         <option value="heatmap">Heatmap</option>
       </select>
